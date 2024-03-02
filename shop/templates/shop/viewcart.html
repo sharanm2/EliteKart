@@ -1,0 +1,65 @@
+{% extends 'shop/layouts/main.html'%}
+{% block title %} Registration | shopKart{% endblock title%}
+{% block content %}
+
+<section class="bg-light py-4 my-2">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h4 class="mb-3">Cart Product</h4>
+                <hr>
+            </div>
+            <table class="table table-bordered">
+                <tr>
+                    <th>Image</th>
+                    <th>Product Name</th>
+                    <th>Product Quantity</th>
+                    <th>Price</th>
+                    <th>Amount </th>
+                    <th>Remove</th>
+                </tr>
+                {% for items in cart%}
+                <tr>
+
+
+                    <td> <img src="{{items.product.product_image.url}}" alt="Catagories"
+                            style="height: 200 px; object-fit: cover;"></td>
+                    <td>{{items.product.name}}</td>
+                    <td>{{items.product_qty}}</td>
+                    <td>${{items.product.selling_price | stringformat:'d'}}</td>
+                    <td class="amt">${{items.total_cost | stringformat:'d'}}</td>
+                    <td><a href="{% url 'removecart' items.id%}" onclick="return confirm('Are you sure to remove it')">
+                            <button class="btn btn-danger btn-sn"><i class="fa fa-trsh">Remove</i></button></td></a>
+
+                </tr>
+                {% endfor%}
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td colspan="2"><b>Total Amount</b></td>
+                    <td id="net"></td>
+                </tr>
+            </table>
+        </div> </a>
+
+    </div>
+</section>
+<script>
+    var nodes = document.querySelectorAll(".amt");
+    var arr = Array.from(nodes);
+    console.log(arr);
+    var res = arr.reduce((acc, cur) => {
+        var value = parseInt(cur.textContent.replace('$', '').trim());
+
+    // If the parsed value is a valid number, add it to the accumulator
+    if (!isNaN(value)) {
+        return acc + value;
+    } else {
+        return acc; // Ignore non-numeric values
+    }
+        return acc += Number(cur.textContent)
+    }, 0);
+    document.getElementById("net").innerHTML = "$" + res;
+</script>
+
+{% endblock content %}

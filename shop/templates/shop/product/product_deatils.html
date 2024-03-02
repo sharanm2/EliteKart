@@ -1,0 +1,161 @@
+{% extends 'shop/layouts/main.html' %}
+{% block title %}
+    shopKart | Online Shopping Portal
+{% endblock title %}
+
+{% block content %}
+<section class="bg-light py-4 my-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                      <li class="breadcrumb-item"><a href="{% url 'home'%}">Home</a></li>
+                      <li class="breadcrumb-item"><a href="{% url 'collections' products.catagory %}">{{catagory_name}}</a></li>
+                      <li class="breadcrumb-item active" aria-current="page">{{product_name}}</li>
+                    </ol>
+                  </nav>
+            </div>
+            <div class="col-12">
+                <h4 class="mb-3"> {{product_name | upper}} Details</h4>
+            </div>
+            
+            <div class="col-md-6">
+                <img src="{{ products.product_image.url }}" alt="{{ product_name }}" class="img-fluid">
+            </div>
+            <div class="col-md-6">
+                <h4 class="mb-3">{{ product_name | upper }}</h4>
+                <ul class="list-unstyled">
+                   
+                    <li>Description: {{ products.description }}</li><br>
+                    <br>
+
+                    <li class="text-danger">Original Price: <span id="old_price">$<s>{{ products.original_price | stringformat:'d' }}</s></span></li>
+                    <li class="text-primary">Selling Price: <span id="selling_price">${{ products.selling_price | stringformat:'d' }}</span></li>
+
+                </ul>
+                <div class="my-3">
+                    {% if products.quantity > 0 %}
+                    {% csrf_token %}
+                    <input type="hidden" name="" value="{{products.id}}" id="pid">
+                        <div class="input-group" style="width: 150px;">
+                            <button class="btn btn-outline-success" id="btnMinus"><i class="fa fa-minus"></i></button>
+                            <input type="text" name="" id="txtQty" value="1" class="form-control text-center">
+                            <button class="btn btn-outline-success" id="btnPlus"><i class="fa fa-plus"></i></button>
+                        </div>
+                        <button type="button" class="btn btn-primary mt-2"  id="btnCart">
+                            <i class="fa fa-shopping-cart"></i> Add to Cart
+                        </button>
+                    {% else %}
+                        <button type="button" class="btn btn-secondary" onclick="addToCart()">
+                            <i class="fa fa-minus"></i> Out of Stock
+                        </button>
+                    {% endif %}
+                    <button type="button" class="btn btn-danger mt-2" id="btnFavorite">
+                        <i class="fa fa-heart"></i> Add to Favorites
+                    </button>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+#old_price {
+    font-weight: bold;
+    color: red;
+}
+
+#selling_price {
+    font-weight: bold;
+    background-color: green;
+    color: white;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(event) {
+    console.log("dsds");
+    var txtQty = document.getElementById("txtQty");
+    var btnPlus = document.getElementById("btnPlus");
+    var btnMinus = document.getElementById("btnMinus");
+    var pid = document.getElementById("pid");
+    var tkn = document.querySelector('[name = "csrfmiddlewaretoken"]').value;
+    var btnCart= document.getElementById("btnCart");
+
+    btnMinus.addEventListener("click", function() {
+        let qty = parseInt(txtQty.value,10);
+        qty = isNaN(qty)?0 : qty;
+        console.log(qty);
+        if(qty > 1){
+            qty--;
+            txtQty.value=qty;
+        };
+        
+    });
+
+    btnPlus.addEventListener("click", function() {
+        var qtyPlus = parseInt(txtQty.value,10);
+        qtyPlus = isNaN(qtyPlus)?0 : qtyPlus; 
+        if(qtyPlus < 10){
+            qtyPlus++;
+            txtQty.value=qtyPlus;
+        };
+       
+    });
+    btnFavorite.addEventListener("click",function(){
+        var pid = document.getElementById("pid").value;
+        console.log(pid);
+        let objFav ={
+            pid:pid
+        }
+        fetch("/favorite",{
+                method  :  "POST",
+                credentials  : 'same-origin',
+                headers:{
+                    'Accept':"application/json",
+                    'X-Requested-With' : 'XMLHttpRequest',
+                    'X-CSRFToken' : '{{csrf_token}}',
+                },
+                body:JSON.stringify(objFav)
+            }).then(response =>{
+                return response.json();
+            }).then(data =>{
+                alert(data['status'])
+            });
+
+    });
+    btnCart.addEventListener("click",function(){
+        var qtyPlus = parseInt(txtQty.value,10);
+        qtyPlus = isNaN(qtyPlus)?0 : qtyPlus; 
+        if(qtyPlus > 0){
+            var obj={
+                product_qty : qtyPlus,
+                pid :pid.value,
+                token : tkn
+            }
+            console.log(obj);
+            fetch("/addtocart",{
+                method  :  "POST",
+                credentials  : 'same-origin',
+                headers:{
+                    'Accept':"application/json",
+                    'X-Requested-With' : 'XMLHttpRequest',
+                    'X-CSRFToken' : '{{csrf_token}}',
+                },
+                body:JSON.stringify(obj)
+            }).then(response =>{
+                return response.json();
+            }).then(data =>{
+                alert(data['status'])
+            });
+        }
+        else{
+            console.log("dsds");
+        }
+    });
+});
+
+</script>
+{% endblock content %}
